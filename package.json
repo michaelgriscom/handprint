@@ -1,0 +1,25 @@
+{
+  "name": "handprint",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Handprint: a giving-pledge tracker with impact estimates. Donations from Actual Budget, income from a yearly config.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "node --import tsx --test src/*.test.ts",
+    "build:web": "tsc -p tsconfig.web.json && esbuild src/web/main.ts --bundle --minify --target=es2020 --outfile=web-dist/app.js && cp web/index.html web-dist/index.html && mkdir -p web-dist/fonts && cp fonts/*.woff2 web-dist/fonts/"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@actual-app/api": "26.9.0",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.12",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}

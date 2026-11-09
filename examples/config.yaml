@@ -1,0 +1,66 @@
+# Re-read on every page load: edit and refresh, no restart needed.
+# kind: gwwc (10% of income, the default) · trial (1% or more; set percent) ·
+# further (everything above a yearly living allowance; set allowance) · custom
+# (set percent). `label` overrides the page title.
+pledge:
+  kind: gwwc
+  percent: 10
+  # kind: further
+  # allowance: 40000
+  # Optional. Years before this are hidden and the first year's target is
+  # pro-rated from this date.
+  # start_date: 2025-01-01
+
+# One row per year. `gross` is pre-tax pay: W-2 Box 5 (Medicare wages) is the
+# closest single figure, since Box 1 leaves out 401k deferrals. During the year
+# keep an estimate (salary + expected bonus/RSUs); at W-2 time replace it with
+# the real number and mark it final.
+income:
+  2025: { gross: 0, status: final, note: "W-2 Box 5" }
+  2026: { gross: 0, status: estimate, note: "salary + expected bonus" }
+
+actual:
+  # A transaction counts as a donation if it matches any rule. Within a rule,
+  # every field given must match (payee/category exact, notes substring; all
+  # case-insensitive). Outflows count as gifts; inflows (refunds) subtract.
+  rules:
+    - payee: Every.org
+  # First match against notes, then payee, names the recipient.
+  recipients:
+    - { match: "EVERY.ORG* ANIMA", name: Animal Charity Evaluators }
+    - { match: "EVERY.ORG* FARMK", name: FarmKind }
+    - { match: "EVERY.ORG* SHRIM", name: Shrimp Welfare Project }
+  default_recipient: Every.org
+  # Optional: ignore Actual before this date if donations.csv already covers it.
+  # since: 2026-01-01
+
+# Optional, relative to this file. Gifts that never touch Actual: history,
+# payroll giving, DAF grants.
+donations_csv: donations.csv
+
+# Built-in charity registry (see src/presets.ts): cause-area categories, name
+# aliases such as "AMF", and impact estimates with sources for GiveWell's top
+# charities, GiveDirectly and Shrimp Welfare Project. Anything you list below
+# overrides it for that recipient; recipients in neither land in default_category.
+presets: ea
+default_category: Other
+
+# Extra categories or recipients. A category with the same name as a preset one
+# is merged into it.
+# categories:
+#   Local: [Food bank, Public radio]
+
+# Extra aliases: as the name appears in your records -> canonical name.
+# aliases:
+#   "AMF UK": Against Malaria Foundation
+
+# Your own impact lines replace the preset's for that recipient. Give either
+# per_dollar (units per $) or cost_per_unit ($ per unit); `share` is the fraction
+# of each dollar reaching that program; `icon` is optional (heart, net, shield,
+# eye, pill, syringe, cash, fish, paw, gift, sparkle) and otherwise guessed.
+# impact:
+#   - recipient: GiveWell
+#     cost_per_unit: 4500
+#     unit: lives saved (expected)
+#     source: https://www.givewell.org/how-much-does-it-cost-to-save-a-life
+#     note: "using GiveWell's lower bound"
