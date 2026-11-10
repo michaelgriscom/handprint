@@ -1,6 +1,6 @@
 {
   "name": "handprint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Handprint: a giving-pledge tracker with impact estimates. Donations from Actual Budget, income from a yearly config.",
   "main": "dist/index.js",
