@@ -336,3 +336,21 @@ test('share: encode/decode round-trips a bundle and rejects junk', async () => {
   assert.equal(shareFromHash('#share=abc'), 'abc');
   assert.equal(shareFromHash('#history'), null);
 });
+
+test('pictogram: one glyph each while countable, then round batches with a partial last glyph', async () => {
+  const { glyphCount, glyphScale, isPeople, pictogram, round2sig } = await import('./pictogram');
+  assert.equal(round2sig(7.46), 7.5);
+  assert.deepEqual(glyphCount(7.5), { each: 1, full: 7, part: 0.5 });
+  assert.deepEqual(glyphCount(0.3), { each: 1, full: 0, part: 0.3 });
+  assert.deepEqual(glyphCount(9), { each: 1, full: 9, part: 0 });
+  assert.equal(glyphScale(50), 1);
+  assert.equal(glyphScale(3500), 200);
+  assert.equal(glyphScale(700_000), 50_000);
+  assert.deepEqual(glyphCount(3500), { each: 200, full: 17, part: 0.5 });
+  assert.ok(isPeople('lives saved (expected)') && isPeople('children protected from malaria for a season'));
+  assert.ok(!isPeople('dollars delivered to families in poverty') && !isPeople('bed nets'));
+  const html = pictogram(7.5, 'lives saved', 'heart');
+  assert.equal(html.match(/class="g person"/g)!.length, 9); // 7 whole + the half, drawn as ghost and fill
+  assert.match(html, /inset\(0 50% 0 0\)/);
+  assert.equal(pictogram(0, 'lives saved', 'heart'), '');
+});

@@ -93,10 +93,10 @@ function render(error?: string, notice?: string) {
   if (!bundle) {
     app.innerHTML = `<div class="empty">
       <h1>Handprint</h1>
-      <p>What you've given against your income, who received it, and a rough estimate of what it did.</p>
-      <p>Data stays in this browser. Import an export from the self-hosted tracker, or a <code>config.yaml</code> and <code>donations.csv</code>. Common EA charities are recognised automatically.</p>
+      <p>Track a giving pledge: what you gave, to whom, and roughly what it did.</p>
       ${errHtml}
       <div class="actions"><button class="btn primary" data-act="import">Import data</button><button class="btn" data-act="sample">Try sample data</button></div>
+      <p class="meta">Import a Handprint export, or <code>config.yaml</code> with <code>donations.csv</code>. Nothing leaves this browser.</p>
     </div>`;
     app.querySelector('[data-act="import"]')!.addEventListener('click', doImport);
     app.querySelector('[data-act="sample"]')!.addEventListener('click', () => {
@@ -114,13 +114,13 @@ function render(error?: string, notice?: string) {
     return render(`Stored data could not be read and was cleared: ${(e as Error).message}`);
   }
   const toolbar = shared
-    ? `<div class="toolbar"><span class="note">Shared snapshot · viewing only, nothing stored</span>
+    ? `<div class="toolbar"><span class="note">Shared snapshot · read-only</span>
     <button class="btn" data-act="keep">Save to this browser</button><button class="btn" data-act="close">Close</button></div>${errHtml}`
-    : `<div class="toolbar"><span class="note">Stored in this browser only${bundle.exportedAt ? ` · exported ${esc(new Date(bundle.exportedAt).toLocaleDateString('en-US'))}` : ''}</span>
+    : `<div class="toolbar">
     <button class="btn" data-act="import">Import</button><button class="btn" data-act="export">Export</button><button class="btn" data-act="share">Share</button><button class="btn" data-act="clear">Clear</button></div>${errHtml}`;
   const footer = shared
-    ? `<footer>A read-only snapshot carried in the link itself. Nothing was uploaded or stored.</footer>`
-    : `<footer>Computed in your browser from data in its local storage. Nothing is uploaded.</footer>`;
+    ? `<footer>The data is in the link itself. Nothing is uploaded.</footer>`
+    : `<footer>Saved in this browser only. Nothing is uploaded.</footer>`;
   const page = pageFor(location.hash) ?? 'overview';
   app.innerHTML = renderMain(view.summary, { page, href: (p) => `#${p}`, refreshedAt: null, error: null, warnings: view.warnings, breakdown: view.breakdown, milestones: view.milestones, toolbar, footer });
   if (shared) {
@@ -147,7 +147,7 @@ function render(error?: string, notice?: string) {
       } catch {
         // clipboard needs a secure context; the field below still lets them copy by hand
       }
-      render(undefined, `<div class="banner share-out"><strong>${copied ? 'Link copied.' : 'Share link:'}</strong> Anyone who opens it sees a read-only snapshot of this page; the data travels in the link (${Math.round(url.length / 1024)} KB), not through a server.<input class="share-url" readonly value="${esc(url)}"></div>`);
+      render(undefined, `<div class="banner share-out"><strong>${copied ? 'Link copied.' : 'Share link:'}</strong> A read-only snapshot; the data is in the link itself (${Math.round(url.length / 1024)} KB).<input class="share-url" readonly value="${esc(url)}"></div>`);
       (app.querySelector('.share-url') as HTMLInputElement | null)?.select();
     });
     app.querySelector('[data-act="clear"]')!.addEventListener('click', () => {

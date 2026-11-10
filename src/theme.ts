@@ -74,6 +74,18 @@ h3.eyebrow:first-child{margin-top:0}
 .stat-label{margin-top:.35rem;font-size:.92rem;line-height:1.35}
 .stat.sm{border-top-width:1px;border-top-color:var(--border)}.stat.sm .stat-value{font-size:1.4rem}
 .stat.accent .stat-value{color:var(--accent)}
+.impacts{display:grid;gap:1.75rem 2rem;grid-template-columns:repeat(2,minmax(0,1fr))}
+.impact{min-width:0}.impact.hero{grid-column:1/-1;border-top:2px solid var(--accent);padding-top:.75rem}
+.impact-value{font-family:var(--display);font-variant-numeric:lining-nums tabular-nums;font-size:1.5rem;line-height:1.1}
+.impact .stat-label{margin-top:.2rem}
+.impact.hero .impact-value{font-size:clamp(2.75rem,10vw,3.75rem);color:var(--accent)}.impact.hero .stat-label{font-size:1.05rem}
+.picto{display:flex;flex-wrap:wrap;gap:.25rem .2rem;margin-top:.6rem;color:var(--accent)}
+.g{display:block;flex:none;width:1.15rem;height:1.15rem}.g.person{width:.7rem;height:1.4rem}
+.picto.lg{gap:.4rem .35rem;margin-top:.9rem}.picto.lg .g{width:2rem;height:2rem}.picto.lg .g.person{width:1.25rem;height:2.5rem}
+.part{position:relative;display:block;color:color-mix(in oklab,var(--subtle) 30%,transparent)}.part>span{position:absolute;inset:0;color:var(--accent)}
+.picto-key{display:flex;align-items:center;gap:.3rem;margin-top:.4rem;font-size:.8rem;color:var(--subtle);font-variant-numeric:lining-nums tabular-nums}
+.picto-key .g{width:.75rem;height:.75rem}.picto-key .g.person{width:.45rem;height:.9rem}
+.notes{margin:.75rem 0 0;padding-left:1.1rem;font-size:.9rem;color:var(--subtle);line-height:1.45}.notes li{margin-bottom:.4rem}.notes strong{font-weight:500;color:var(--foreground)}
 .stats{display:grid;gap:1.25rem 1.5rem;grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:40rem){.stats.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.stats.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
@@ -125,7 +137,7 @@ h3.eyebrow:first-child{margin-top:0}
 .ms-text{flex:1;min-width:0}.ms-date{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;font-variant-numeric:lining-nums tabular-nums}
 .ms-cols{display:grid;gap:0 2.5rem}
 @media (min-width:40rem){.ms-cols{grid-template-columns:1fr 1fr}}
-.ms-more{margin-top:.5rem}.ms-more summary{cursor:pointer;color:var(--subtle);font-size:.9rem;font-style:italic;list-style:none}
+.ms-list li.ms-fold{display:block;padding:.4rem 0 0}.ms-more{margin-top:0}.ms-more summary{cursor:pointer;color:var(--subtle);font-size:.9rem;font-style:italic;list-style:none}
 .ms-more summary::-webkit-details-marker{display:none}.ms-more summary:hover{color:var(--foreground)}
 
 .breakdown{position:relative}
@@ -161,10 +173,10 @@ h3.eyebrow:first-child{margin-top:0}
 .rval{font-size:.85rem;color:var(--subtle);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
 
 .viz-root footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--border);color:var(--subtle);font-size:.9rem;font-style:italic;line-height:1.5}
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1.5rem}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:.5rem;margin-bottom:1.5rem}
 .toolbar .note{margin-right:auto;font-size:.9rem;font-style:italic;color:var(--subtle)}
 .empty{max-width:34rem;margin:6vh auto 0}.empty h1{margin-bottom:.75rem}.empty p{color:var(--subtle);line-height:1.6}
-.empty .actions{display:flex;gap:.6rem;margin:1.5rem 0}.empty code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:color-mix(in oklab,var(--muted) 70%,transparent);padding:.1em .35em;border-radius:.25rem}
+.empty .actions{display:flex;gap:.6rem;margin:1.5rem 0 1.25rem}.empty code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;background:color-mix(in oklab,var(--muted) 70%,transparent);padding:.1em .35em;border-radius:.25rem}
 .share-url{display:block;width:100%;margin-top:.5rem;font:inherit;font-size:.8rem;padding:.35rem .5rem;border:1px solid var(--border);border-radius:.25rem;background:var(--background);color:var(--subtle)}
 .err{border-left:2px solid #c0453f;background:color-mix(in oklab,#c0453f 10%,var(--surface));padding:.6rem .9rem;margin:1rem 0;font-size:.95rem}
 `;

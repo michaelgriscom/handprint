@@ -116,7 +116,7 @@ export const breakdownScript = `
     }
 
     $('.bd-kpis').replaceChildren(
-      tile('given', usd(total), (lo === hi ? 'in ' + lo : lo + '–' + hi)),
+      tile('given', usd(total), ''),
       tile(rows.filter((r) => r.a > 0).length === 1 ? 'gift' : 'gifts', String(rows.filter((r) => r.a > 0).length), eaMode === 'all' ? '' : eaMode === 'ea' ? 'EA-aligned' : 'not EA-aligned'),
       tile(byRec.size === 1 ? 'recipient' : 'recipients', String(byRec.size), on.size === D.cats.length ? '' : [...on].join(', ')),
     );

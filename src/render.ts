@@ -2,6 +2,7 @@ import { breakdownScript } from './breakdown';
 import { chartScript, renderCharts } from './charts';
 import { iconSvg } from './icons';
 import { Next, Reached } from './milestones';
+import { pictogram, round2sig } from './pictogram';
 import { Impact, Summary, YearSummary } from './summary';
 import { fontFace, STYLES, themeScript } from './theme';
 
@@ -42,9 +43,8 @@ const usdCompact = (n: number) =>
   n >= 1e6 ? `$${(n / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })}M` : usd(n);
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
-// Two significant figures: these are rough estimates, so more digits would overstate them.
 const approx = (n: number) =>
-  `≈${n.toLocaleString('en-US', { notation: n >= 10_000 ? 'compact' : 'standard', maximumSignificantDigits: 2 })}`;
+  `≈${round2sig(n).toLocaleString('en-US', { notation: n >= 10_000 ? 'compact' : 'standard', maximumSignificantDigits: 2 })}`;
 
 function stat(value: string, label: string, opts: { icon?: string; small?: boolean; accent?: boolean; title?: string } = {}) {
   const cls = ['stat', opts.small ? 'sm' : '', opts.accent ? 'accent' : ''].filter(Boolean).join(' ');
@@ -66,19 +66,24 @@ function meter(given: number, target: number | null, marker: number | null, thin
   return `<div class="meter${thin ? ' thin' : ''}" role="meter" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${given}" aria-label="${esc(name)}" title="${esc(name)}"><span class="fill" style="width:${(fill * 100).toFixed(2)}%"></span>${mark}</div>`;
 }
 
-/** Lifetime impact, unfiltered: the warm-fuzzies scorecard at the top. */
+/** Lifetime impact: each figure with a glyph row, so the count is seen as well as read. */
 function renderScorecard(list: Impact[]) {
   if (!list.length) return '';
-  const tiles = list
-    .map((i) =>
-      stat(approx(i.amount), `${esc(i.unit)}${i.source ? ` <a class="src" href="${esc(i.source)}" rel="noreferrer" target="_blank">source</a>` : ''}`, { icon: i.icon, title: i.note }),
-    )
+  const tile = (i: Impact, n: number) =>
+    `<div class="impact${n === 0 ? ' hero' : ''}"${i.note ? ` title="${esc(i.note)}"` : ''}>
+      <div class="impact-value">${esc(approx(i.amount))}</div>
+      <div class="stat-label">${esc(i.unit)}</div>
+      ${pictogram(round2sig(i.amount), i.unit, i.icon, n === 0)}
+    </div>`;
+  const notes = list
+    .filter((i) => i.note || i.source)
+    .map((i) => `<li><strong>${esc(i.unit)}:</strong> ${esc(i.note ?? '')}${i.source ? ` <a class="src" href="${esc(i.source)}" rel="noreferrer" target="_blank">source</a>` : ''}</li>`)
     .join('');
   return section(
     'Impact',
-    `<div class="stats cols-3">${tiles}</div>
-    <p class="meta" style="margin-top:1.25rem">Estimates: dollars given × each charity's published per-dollar figure. Hover a number for the assumption.</p>`,
-    'lifetime',
+    `<div class="impacts">${list.map(tile).join('')}</div>
+    ${notes ? `<details class="table-view"><summary>How these are estimated</summary><ul class="notes">${notes}</ul></details>` : ''}`,
+    'lifetime estimate',
   );
 }
 
@@ -92,32 +97,30 @@ function renderPledge(s: Summary) {
   const parts: string[] = [];
 
   if (s.lifetime) {
-    const goal = s.lifetime.goal;
-    const met = s.lifetime.given >= goal;
+    const { given, goal, gross, years, estimated } = s.lifetime;
     parts.push(`<div class="stats">
-      ${stat(pct(s.lifetime.percent), `of gross income given · ${usd(s.lifetime.given)} of ${usdCompact(s.lifetime.gross)} over ${s.lifetime.years} years${s.lifetime.estimated ? ', incl. estimates' : ''}`, { accent: true })}
-      ${met ? stat('Met', `${pledgeGoal(s)} reached, ${usd(s.lifetime.given - goal)} over`) : stat(usd(goal - s.lifetime.given), `to reach ${pledgeGoal(s)}`)}
-    </div>${meter(s.lifetime.given, goal, null)}`);
+      ${stat(pct(s.lifetime.percent), 'of income given', { accent: true, title: `${usd(given)} of ${usd(gross)} over ${years} ${years === 1 ? 'year' : 'years'}${estimated ? ', incl. estimates' : ''}` })}
+      ${given >= goal ? stat(usd(given - goal), `past ${pledgeGoal(s)}`) : stat(usd(goal - given), `to reach ${pledgeGoal(s)}`)}
+    </div>${meter(given, goal, null)}
+    <p class="legend lining">${usd(given)} of ${usdCompact(goal)} pledged</p>`);
   }
 
   if (current) {
     const y = current;
+    const est = y.income && y.income.status !== 'final';
     const tiles = [
-      stat(usd(y.given), y.percentGiven === null ? 'given' : `given · ${pct(y.percentGiven)} of gross`, { small: true }),
-      stat(
-        y.target === null ? '—' : usd(y.target),
-        y.income
-          ? `target · ${s.pledge.kind === 'further' ? `income above ${usd(s.pledge.allowance!)}` : `${s.percent}% of ${y.income.status === 'final' ? '' : 'est. '}${usd(y.income.gross)}`}${y.coverage < 1 ? `, pro-rated` : ''}`
-          : 'target · set income in config.yaml',
-        { small: true },
-      ),
+      stat(usd(y.given), 'given', { small: true, title: y.percentGiven === null ? undefined : `${pct(y.percentGiven)} of income` }),
+      stat(y.target === null ? '—' : usd(y.target), y.income ? `target${est ? ' · est.' : ''}${y.coverage < 1 ? ' · pro-rated' : ''}` : 'target · income not set', {
+        small: true,
+        title: y.income ? (s.pledge.kind === 'further' ? `Income above ${usd(s.pledge.allowance!)}` : `${s.percent}% of ${usd(y.income.gross)}`) : undefined,
+      }),
     ];
-    if (y.pace) tiles.push(stat(usd(Math.abs(y.pace.ahead)), `${y.pace.ahead >= 0 ? 'ahead of' : 'behind'} pace · ${usd(y.pace.targetToDate)} expected by now`, { small: true }));
-    if (prev?.balance != null) tiles.push(stat(usd(prev.balance, true), `carried over · ${prev.balance >= 0 ? 'surplus' : 'shortfall'} through ${prev.year}`, { small: true }));
-    parts.push(`<h3 class="eyebrow" style="margin-top:2rem">This year · ${y.year}</h3>
+    if (y.pace) tiles.push(stat(usd(Math.abs(y.pace.ahead)), y.pace.ahead >= 0 ? 'ahead of pace' : 'behind pace', { small: true, title: `${usd(y.pace.targetToDate)} expected by now` }));
+    if (prev?.balance != null) tiles.push(stat(usd(prev.balance, true), `carried from ${prev.year}`, { small: true, title: `${prev.balance >= 0 ? 'Surplus' : 'Shortfall'} through ${prev.year}` }));
+    parts.push(`<h3 class="eyebrow" style="margin-top:2rem">${y.year}</h3>
       <div class="stats cols-${tiles.length}">${tiles.join('')}</div>
       ${meter(y.given, y.target, y.pace?.targetToDate ?? null)}
-      ${y.pace ? `<p class="legend"><span><span class="sw given"></span>given</span><span><span class="sw marker"></span>target to date</span></p>` : ''}`);
+      ${y.pace ? `<p class="legend"><span><span class="sw marker"></span>on pace</span></p>` : ''}`);
   }
 
   return parts.length ? section('Pledge', parts.join(''), pledgeDesc(s)) : '';
@@ -164,11 +167,16 @@ function renderMilestones(m: { reached: Reached[]; next: Next[] }) {
     })
     .join('');
   const item = (r: Reached) => `<li>${iconSvg(r.icon)}<span class="ms-text">${esc(r.text)}</span><span class="ms-date">${when(r.date)}</span></li>`;
+  const RECENT = 6; // the rest fold away: early milestones are small and many
+  const older = m.reached.slice(RECENT);
+  const reached =
+    m.reached.slice(0, RECENT).map(item).join('') +
+    (older.length ? `<li class="ms-fold"><details class="table-view ms-more"><summary>${older.length} earlier</summary><ul class="ms-list">${older.map(item).join('')}</ul></details></li>` : '');
   return section(
     'Milestones',
     `<div class="ms-cols">
-    <div><h3 class="eyebrow">Next</h3><ul class="ms-list">${next || '<li class="meta">Nothing queued.</li>'}</ul></div>
-    <div><h3 class="eyebrow">Reached</h3><ul class="ms-list">${m.reached.map(item).join('') || '<li class="meta">None yet.</li>'}</ul></div>
+    <div><h3 class="eyebrow">Next</h3><ul class="ms-list">${next || '<li class="meta">None.</li>'}</ul></div>
+    <div><h3 class="eyebrow">Reached</h3><ul class="ms-list">${reached || '<li class="meta">None yet.</li>'}</ul></div>
   </div>`,
     `${m.reached.length} reached`,
   );
@@ -194,11 +202,11 @@ export function renderMain(s: Summary, meta: RenderMeta): string {
 
   return `${meta.toolbar ?? ''}
 <h1>Handprint</h1>
-<p class="subtitle lining">${usd(s.totalGiven)} given${first ? ` since ${first}` : ''} toward the ${esc(s.pledge.label)}: ${pledgeDesc(s)}.</p>
+<p class="subtitle lining">${usd(s.totalGiven)} given${first ? ` since ${first}` : ''} · ${esc(s.pledge.label)}</p>
 ${nav}
 ${banners ? `<div style="margin-top:1.5rem">${banners}</div>` : ''}
 ${body}
-${meta.footer ?? `<footer>Gifts from Actual${meta.refreshedAt ? ` (refreshed ${esc(new Date(meta.refreshedAt).toLocaleString('en-US'))})` : ' (not loaded yet)'} and donations.csv; income and settings from config.yaml. <a href="/api/summary">JSON</a> · <a href="/export">Export</a></footer>`}`;
+${meta.footer ?? `<footer>${meta.refreshedAt ? `Refreshed ${esc(new Date(meta.refreshedAt).toLocaleString('en-US'))}` : 'Not loaded yet'} · <a href="/api/summary">JSON</a> · <a href="/export">Export</a></footer>`}`;
 }
 
 const moon = '<svg class="icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
